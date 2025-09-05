@@ -1,0 +1,322 @@
+# python-can driven diagnostics
+can_diag:
+  publish_hz: 2.0
+  stale_factor: 1.5
+  hardware_id_prefix: "CAN"
+
+  bus:
+    interface: socketcan          # e.g., socketcan, kvaser, pcan
+    channel: can1
+    bitrate: 500000               # ignored by socketcan if already set via `ip link`
+
+  ids:
+
+    # -------------------- Battery block (0x301) --------------------
+    "0x301":
+      name: battery_status
+      expected_hz: 10.0
+      fields:
+        # SOC: 0x301 byte 0
+        - key: soc_pct
+          start: 0
+          length: 1
+          endian: little
+          signed: false
+          scale: 1.0                 # raw 0–100 → % (adjust if different)
+          units: "%"
+          thresholds:
+            warn_low: 10             # from sheet's "Safety Threshold" (low reserve)
+            error_low: 5
+            warn_high: 80
+            error_high: 95
+
+        # battery1 power: 0x301 bytes 2–3
+        - key: batt_power_w
+          start: 2
+          length: 2
+          endian: little
+          signed: false
+          scale: 1.0                 # adjust if needs 0.1 etc.
+          units: W
+
+        # battery1 ntc1 temp: 0x301 byte 6
+        - key: batt_ntc1_temp_c
+          start: 6
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: C
+          thresholds:
+            warn_low: -20
+            error_low: -40
+            warn_high: 60
+            error_high: 80
+
+        # battery1 ntc2 temp: 0x301 byte 7
+        - key: batt_ntc2_temp_c
+          start: 7
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: C
+          thresholds:
+            warn_low: -20
+            error_low: -40
+            warn_high: 60
+            error_high: 80
+
+        # battery capacity: 0x301 byte 4 (units TBD)
+        - key: batt_capacity_raw
+          start: 4
+          length: 1
+          endian: little
+          signed: false
+          scale: 1.0                 # set your real scaling (e.g., 0.1 for kWh)
+          units: raw
+
+    # -------------------- Motor 1 block (0x310) --------------------
+    "0x310":
+      name: motor1_status
+      expected_hz: 10.0
+      fields:
+        # Motor 1 RPM 41: 0x310 bytes 0–1
+        - key: m1_rpm
+          start: 0
+          length: 2
+          endian: little
+          signed: false
+          scale: 1.0
+          units: rpm
+          thresholds:
+            warn_low: -1
+            error_low: -10
+            warn_high: 0
+            error_high: 4500
+
+        # power1: 0x310 bytes 2–3
+        - key: m1_power_w
+          start: 2
+          length: 2
+          endian: little
+          signed: false
+          scale: 1.0
+          units: W
+          thresholds:
+            error_high: 7000
+            error_low: 0
+
+        # phase current 1: 0x310 bytes 4–5
+        - key: m1_phase_current_a
+          start: 4
+          length: 2
+          endian: little
+          signed: true
+          scale: 1.0                   # set to 0.1 if raw is deci-amps
+          units: A
+          thresholds:
+            error_high: 300
+            error_low: 0
+
+        # Motor Temp 1: 0x310 byte 6
+        - key: m1_motor_temp_c
+          start: 6
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: C
+          thresholds:
+            warn_high: 90
+            error_high: 110
+
+        # MCU temp 1: 0x310 byte 7
+        - key: m1_mcu_temp_c
+          start: 7
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: C
+          thresholds:
+            warn_high: 70
+            error_high: 90
+
+        # Motor Failure flags (byte/bit position not provided in sheet)
+        # - Fill in start/length/mask when you have the mapping:
+        # - key: m1_failure_flags
+        #   start: <byte>
+        #   length: 1
+        #   endian: little
+        #   signed: false
+        #   scale: 1.0
+        #   units: bitfield
+        #   thresholds:
+        #     error_mask_any: 0xFF
+
+    # -------------------- Motor 2 block (0x312) --------------------
+    "0x312":
+      name: motor2_status
+      expected_hz: 10.0
+      fields:
+        # Motor 2 RPM 42: 0x312 bytes 0–1
+        - key: m2_rpm
+          start: 0
+          length: 2
+          endian: little
+          signed: false
+          scale: 1.0
+          units: rpm
+          thresholds:
+            warn_low: -1
+            error_low: -10
+            warn_high: 0
+            error_high: 4500
+
+        # power2: 0x312 bytes 2–3
+        - key: m2_power_w
+          start: 2
+          length: 2
+          endian: little
+          signed: false
+          scale: 1.0
+          units: W
+          thresholds:
+            error_high: 7000
+            error_low: 0
+
+        # Phase current 2: 0x312 bytes 4–5
+        - key: m2_phase_current_a
+          start: 4
+          length: 2
+          endian: little
+          signed: true
+          scale: 1.0
+          units: A
+          thresholds:
+            error_high: 300
+            error_low: 0
+
+        # Motor Temp 2: 0x312 byte 6
+        - key: m2_motor_temp_c
+          start: 6
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: C
+          thresholds:
+            warn_high: 90
+            error_high: 110
+
+        # MCU temp 2: 0x312 byte 7
+        - key: m2_mcu_temp_c
+          start: 7
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: C
+          thresholds:
+            warn_high: 70
+            error_high: 90
+
+        # Motor Failure flags — add exact byte/mask when known
+        # - key: m2_failure_flags
+        #   start: <byte>
+        #   length: 1
+        #   endian: little
+        #   signed: false
+        #   scale: 1.0
+        #   units: bitfield
+        #   thresholds:
+        #     error_mask_any: 0xFF
+
+    # -------------------- Control block (0x306) --------------------
+    "0x306":
+      name: control_status
+      expected_hz: 10.0
+      fields:
+        # throttle: 0x306 byte 7
+        - key: throttle_pct
+          start: 7
+          length: 1
+          endian: little
+          signed: false
+          scale: 0.392                 # 0–255 → ~0–100%
+          units: "%"
+          thresholds:
+            error_high: 100
+            error_low: -100
+
+        # yaw: 0x306 byte 6 (units TBD)
+        - key: yaw_raw
+          start: 6
+          length: 1
+          endian: little
+          signed: true
+          scale: 1.0
+          units: raw
+          thresholds:
+            error_high: 100
+            error_low: -100
+
+        # If speed/torque share this ID, add correct offsets/scales here when known:
+        # - key: vehicle_speed_mps
+        #   start: <byte>
+        #   length: 2
+        #   endian: little
+        #   signed: false
+        #   scale: 0.01
+        #   units: m/s
+        # - key: vehicle_torque_nm
+        #   start: <byte>
+        #   length: 2
+        #   endian: little
+        #   signed: true
+        #   scale: 0.1
+        #   units: N·m
+
+    # --------------- Stubs you said you'll add later ----------------
+    # Fill these with the correct CAN ID/byte layout when available.
+    # "0x308":
+    #   name: error_flags
+    #   expected_hz: 5.0
+    #   fields:
+    #     - key: flags
+    #       start: 0
+    #       length: 1
+    #       endian: little
+    #       signed: false
+    #       scale: 1
+    #       units: bitfield
+    #       thresholds:
+    #         error_mask_any: 0xFF
+    #
+    # "0x305":
+    #   name: controller_temp
+    #   expected_hz: 1.0
+    #   fields:
+    #     - key: controller_temp_c
+    #       start: 0
+    #       length: 2
+    #       endian: little
+    #       signed: false
+    #       scale: 0.1
+    #       units: C
+    #
+    # "0x309":
+    #   name: uptime
+    #   expected_hz: 0.2
+    #   fields:
+    #     - key: seconds
+    #       start: 0
+    #       length: 4
+    #       endian: little
+    #       signed: false
+    #       scale: 1.0
+    #       units: s
+    #
+    # "0x310" / "0x312" additional flags:
+    #   (add motor failure / MCU error flags here once byte & mask are confirmed)
