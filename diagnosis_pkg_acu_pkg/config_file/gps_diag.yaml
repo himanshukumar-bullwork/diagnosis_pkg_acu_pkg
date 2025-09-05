@@ -1,0 +1,127 @@
+gps_diag:
+  publish_hz: 2.0
+  stale_factor: 1.5
+  default_stale_s: 1.5
+  qos_depth: 10             # subscriber queue; pubs advertise depth=5
+  hardware_id_prefix: "GPS"
+  usb_rescan_period_s: 3.0
+
+  devices:
+    base:  { vendor_id: "1546", product_id: "01a9", serial: "Tset" }
+    rover: { vendor_id: "1546", product_id: "01a9", serial: "tseT" }
+
+  components:
+
+    base_pvt:
+      name: "PVT (base)"
+      hardware_id: "GPS_BASE"
+      topic: "/gps/ubx_nav_pvt"
+      type: "NavPVT"
+      expected_hz: 1.0
+      qos: "sensor"     # <- BEST_EFFORT (from probe)
+      fields:
+        - key: h_acc_cm
+          expr: "h_acc"               # UBX typically in mm
+          scale: 0.1                  # mm → cm
+          units: "cm"
+          thresholds:
+            warn_high: 40
+            error_high: 150
+        - key: carrier_solution
+          expr_any: ["carr_soln.status", "carrSoln.status"]
+          enum_levels:
+            "0": "ERROR"   # none
+            "1": "WARN"    # float
+            "2": "OK"      # fixed
+          enum_labels:
+            "0": "ERROR"
+            "1": "float"
+            "2": "fixed"
+        - key: fix_type
+          expr_any: ["gps_fix.fix_type", "gpsFix.fix_type"]
+          enum_levels:
+            "0": "ERROR"   # no fix
+            "1": "ERROR"    # DR only
+            "2": "WARN"    # 2D
+            "3": "OK"      # 3D
+            "4": "OK"      # GNSS+DR
+            "5": "WARN"    # time only
+          enum_labels:
+            "0": "no_fix"
+            "1": "dr_only"
+            "2": "fix_2d"
+            "3": "fix_3d"
+            "4": "gnss+dr"
+            "5": "time_only"
+        - key: lat_deg
+          expr: "lat"
+          scale: 1e-7
+          units: "deg"
+        - key: lon_deg
+          expr: "lon"
+          scale: 1e-7
+          units: "deg"
+
+    rover_pvt:
+      name: "PVT (rover)"
+      hardware_id: "GPS_ROVER"
+      topic: "/rover/ubx_nav_pvt"
+      type: "NavPVT"
+      expected_hz: 1.0
+      qos: "sensor"
+      fields:
+        - key: h_acc_cm
+          expr: "h_acc"
+          scale: 0.1
+          units: "cm"
+          thresholds:
+            warn_high: 40
+            error_high: 150
+        - key: carrier_solution
+          expr_any: ["carr_soln.status", "carrSoln.status"]
+          enum_levels:
+            "0": "ERROR"
+            "1": "WARN"
+            "2": "OK"
+          enum_labels:
+            "0": "none"
+            "1": "float"
+            "2": "fixed"
+        - key: lat_deg
+          expr: "lat"
+          scale: 1e-7
+          units: "deg"
+        - key: lon_deg
+          expr: "lon"
+          scale: 1e-7
+          units: "deg"
+
+    rover_relpos:
+      name: "REL_POS_NED (rover)"
+      hardware_id: "GPS_ROVER"
+      topic: "/rover/ubx_nav_rel_pos_ned"
+      type: "NavRELPOSNED"
+      expected_hz: 1.0
+      qos: "sensor"
+      fields:
+        - key: carrier_solution
+          expr_any: ["carr_soln.status", "carrSoln.status"]
+          enum_levels:
+            "0": "ERROR"
+            "1": "WARN"
+            "2": "OK"
+          enum_labels:
+            "0": "none"
+            "1": "float"
+            "2": "fixed"
+        - key: is_moving
+          expr_any: ["is_moving", "isMoving"]
+
+    rover_rtcm:
+      name: "RTCM (rover)"
+      hardware_id: "GPS_ROVER"
+      topic: "/rover/ubx_rxm_rtcm"
+      type: "RxmRTCM"
+      expected_hz: 1.0
+      qos: "sensor"
+      stale_s: 5.0     # RTCM bursts; be forgiving

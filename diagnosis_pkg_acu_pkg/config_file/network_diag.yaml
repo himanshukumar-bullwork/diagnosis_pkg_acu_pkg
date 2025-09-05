@@ -1,0 +1,95 @@
+network_diag:
+  publish_hz: 2.0
+  qos_depth: 50
+  hardware_id: "network"
+
+  # Each check runs in its own thread and updates a cached status.
+  # The 2 Hz publisher only reads that cache. If a check hasn't updated
+  # within stale_s seconds, it is marked STALE at publish time.
+
+  internet:
+    enabled: true
+    host: "8.8.8.8"
+    interval_s: 2.0
+    timeout_s: 1.0            # ping command timeout
+    stale_s: 5.0
+    latency_warn_ms: 500      # optional; omit to disable WARN
+    latency_error_ms: 1000     # optional; omit to disable ERROR
+
+  mqtt:
+    enabled: true
+    host: "127.0.0.1"
+    port: 1883
+    transport: tcp
+    keepalive_s: 3.0
+    interval_s: 3.0
+    timeout_s: 2.0
+    stale_s: 8.0              # if no update for this long → STALE
+
+  wifi_signal:
+    enabled: true
+    iface: "auto"
+    interval_s: 2.0
+    stale_s: 6.0
+    # RSSI thresholds (optional)
+    rssi_warn_dbm: -75
+    rssi_error_dbm: -85
+
+  neighbors:
+    enabled: true
+    interval_s: 5.0
+    stale_s: 12.0
+    method: "ip_neigh"        # ip_neigh | arp
+    # Optional thresholds for count:
+    # warn_low: 0
+    # error_low: 0
+
+  driver:
+    enabled: true
+    iface: "auto"
+    interval_s: 30.0          # re-query every so often
+    stale_s: 90.0
+
+  gateway:
+    enabled: true
+    interval_s: 2.0
+    timeout_s: 1.0
+    stale_s: 6.0
+    # if empty, auto-detect via `ip route`
+    address: "192.168.1.101"          # e.g. "192.168.1.1"
+    latency_warn_ms: 50
+    latency_error_ms: 150
+
+  dns:
+    enabled: true
+    interval_s: 3.0
+    timeout_s: 1.5
+    stale_s: 8.0
+    hostname: "example.com"   # or a list, start with one
+    latency_warn_ms: 120
+    latency_error_ms: 300
+
+  internet:
+    # keep your section, but add:
+    count: 5                  # ping N to compute loss %
+    jitter_warn_ms: 50
+    jitter_error_ms: 120
+
+  wifi_link:
+    enabled: true
+    iface: "auto"
+    interval_s: 1.0
+    stale_s: 4.0
+    bitrate_warn_mbps: 12
+    bitrate_error_mbps: 6
+
+  iface_status:
+    enabled: true
+    iface: "auto"
+    interval_s: 2.0
+    stale_s: 8.0
+    detect_flaps_window_s: 60
+    flap_warn_count: 3
+
+  policy:
+    offline_ok: false   # if true, diag publishes kv offline_ok:true under "Internet Connectivity"
