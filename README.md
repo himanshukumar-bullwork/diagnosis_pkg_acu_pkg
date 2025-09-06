@@ -1,10 +1,7 @@
-# diagnosis_pkg_acu_pkg
+<img width="732" height="280" alt="image" src="https://github.com/user-attachments/assets/346c6e19-922c-4dea-ac3e-23b7f6065419" /># diagnosis_pkg_acu_pkg
 
 Diagnose the currently running subsystems in your vehicle and software stack using ROS 2.  
 This package provides a simple, configurable diagnosis window that you can tailor to show only the components you care about (e.g., LiDAR, CAN, Camera, or your own vehicle-side publishers).
-
-> _Add screenshots here_  
-> ![Diagnosis UI](docs/images/diagnosis_ui.png)
 
 ---
 
@@ -31,9 +28,6 @@ This package provides a simple, configurable diagnosis window that you can tailo
 - **colcon** build tools
 - **diagnostic_msgs** package
 
-> _Add environment/table image here_  
-> ![Environment](docs/images/env.png)
-
 ---
 
 ## Installation
@@ -45,8 +39,8 @@ Make sure your ROS environment is sourced, then install `diagnostic_msgs`:
 ```bash
 source ~/.bashrc
 sudo apt install ros-humble-diagnostic-msgs
+<img width="732" height="280" alt="image" src="https://github.com/user-attachments/assets/62397ba2-67e9-41f8-a256-d4bde3f14495" />
 
-<img width="732" height="280" alt="image" src="https://github.com/user-attachments/assets/8c52dc91-d65b-44e3-81e1-c5f5af0469d8" />
 
 ### 2) Clone this package
 
